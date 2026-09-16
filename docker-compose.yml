@@ -1,0 +1,34 @@
+services:
+  api:
+    build:
+      context: ./backend
+    container_name: hris-api
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://hris:hris@db:5432/hris
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    container_name: hris-db
+    environment:
+      POSTGRES_DB: hris
+      POSTGRES_USER: hris
+      POSTGRES_PASSWORD: hris
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hris -d hris"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
